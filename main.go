@@ -1,10 +1,17 @@
 package main
 
 import (
-	"fmt"
 	"github.com/bluepongo/binlog-parse/parsing"
 )
 
+const (
+	DefaultBinlogFilePath = "./binlog_test.txt"
+)
+
 func main() {
-	fmt.Println(parsing.TT(2))
+	//unix := "61c57ff2"
+	//t, _ := parsing.Base16ToAscii(unix)
+	//fmt.Println(t)
+	//fmt.Println(time.Unix(t, 0))
+	parsing.ParseBinlog(DefaultBinlogFilePath)
 }
