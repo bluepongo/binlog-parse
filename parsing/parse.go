@@ -9,6 +9,7 @@ import (
 
 // ParseBinlog parsing the binlog
 func ParseBinlog(filePath string) {
+	fmt.Println("====================================binlog-parse====================================")
 	content, _ := file.ReadBinlog("./binlog_test.txt")
 	hex := file.SplitBinlog(content)
 	binlogLen := len(hex)

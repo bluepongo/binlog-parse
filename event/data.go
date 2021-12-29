@@ -3,6 +3,8 @@ package event
 import (
 	"fmt"
 	"github.com/bluepongo/binlog-parse/util"
+	"strings"
+	"time"
 )
 
 // ParseData determine the Event type and choose the parse function
@@ -12,11 +14,11 @@ func ParseData(content []string, pos int, headerMap map[string]interface{}) map[
 	case "QUERY_EVENT":
 		return ParseQueryEvent(eventBody)
 	case "FORMAT_DESCRIPTION_EVENT":
-		ParseFormatDescriptionEvent(eventBody)
+		return ParseFormatDescriptionEvent(eventBody)
 	case "XID_EVENT":
-		ParseXIDEvent(eventBody)
+		return ParseXIDEvent(eventBody)
 	case "TABLE_MAP_EVENT":
-		ParseTableMapEvent(eventBody)
+		return ParseTableMapEvent(eventBody)
 	case "WRITE_EVENT":
 		ParseWriteEvent(eventBody)
 	case "UPDATE_EVENT":
@@ -114,19 +116,282 @@ func ParseQueryEvent(eventBody []string) map[string]interface{} {
 }
 
 // ParseFormatDescriptionEvent parsing the format_description_event
-func ParseFormatDescriptionEvent(eventBody []string) {
-	// fmt.Println(eventBody)
+func ParseFormatDescriptionEvent(eventBody []string) map[string]interface{} {
+	var dataMap map[string]interface{}
+	dataMap = make(map[string]interface{})
+	var pos int64
+	pos = 0
 
+	// binlog_version
+	var binlogVersionBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+2]) {
+		binlogVersionBase16 += t
+	}
+	pos += 2
+	binlogVersion, _ := util.Base16ToBase10(binlogVersionBase16)
+	dataMap["binlog_version"] = binlogVersion
+
+	// server_version
+	var serverVersion string
+	for _, t := range eventBody[pos : pos+50] {
+		t, _ = util.Base16ToChar(t)
+		serverVersion += t
+	}
+	pos += 50
+	serverVersion = strings.Replace(serverVersion, "\u0000", "", -1)
+	dataMap["server_version"] = serverVersion
+
+	// create_timestamp
+	var createTimeBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+4]) {
+		createTimeBase16 += t
+	}
+	createTimeUnix, _ := util.Base16ToBase10(createTimeBase16)
+	if createTimeUnix == 0 {
+		dataMap["create_time"] = 0
+		dataMap["create_timestamp"] = 0
+	} else {
+		dataMap["create_time"] = createTimeUnix
+		createTimeStamp := time.Unix(createTimeUnix, 0).Format(DefaultTimeStampFormat)
+		dataMap["create_timestamp"] = createTimeStamp
+	}
+
+	// header_length
+	var headerLengthBase16 string
+	headerLengthBase16 = eventBody[pos]
+	pos += 1
+	headerLength, _ := util.Base16ToBase10(headerLengthBase16)
+	dataMap["header_length"] = headerLength
+
+	// array of post-header
+	var arrayOfPostHeaderBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos:]) {
+		arrayOfPostHeaderBase16 += t
+	}
+	dataMap["array_of_post-header"] = arrayOfPostHeaderBase16
+
+	return dataMap
 }
 
 // ParseXIDEvent parsing the xid_event
-func ParseXIDEvent(eventBody []string) {
-	fmt.Println(eventBody)
+func ParseXIDEvent(eventBody []string) map[string]interface{} {
+	var dataMap map[string]interface{}
+	dataMap = make(map[string]interface{})
+	var pos int64
+	pos = 0
+
+	// XID
+	var xidBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos:]) {
+		xidBase16 += t
+	}
+	pos += 2
+	xid, _ := util.Base16ToBase10(xidBase16)
+	dataMap["xid"] = xid
+
+	return dataMap
 }
 
 // ParseTableMapEvent parsing the table_map_event
-func ParseTableMapEvent(eventBody []string) {
-	fmt.Println(eventBody)
+func ParseTableMapEvent(eventBody []string) map[string]interface{} {
+	//fmt.Println(len(eventBody))
+	var dataMap map[string]interface{}
+	dataMap = make(map[string]interface{})
+	var pos int64
+	pos = 0
+
+	// table_id
+	var tableIDBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+6]) {
+		tableIDBase16 += t
+	}
+	pos += 6
+	tableID, _ := util.Base16ToBase10(tableIDBase16)
+	dataMap["table_id"] = tableID
+
+	// Reserved
+	var reservedBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+2]) {
+		reservedBase16 += t
+	}
+	pos += 2
+	reserved, _ := util.Base16ToBase10(reservedBase16)
+	dataMap["reserved"] = reserved
+
+	// db len
+	var dbLenBase16 string
+	dbLenBase16 = eventBody[pos]
+	pos += 1
+	dbLen, _ := util.Base16ToBase10(dbLenBase16)
+	dataMap["db_len"] = dbLen
+
+	// db name
+	var dbName string
+	for _, t := range eventBody[pos : pos+dataMap["db_len"].(int64)] {
+		t, _ = util.Base16ToChar(t)
+		dbName += t
+	}
+	pos = pos + dataMap["db_len"].(int64) + 1
+	dataMap["db_name"] = dbName
+
+	// table len
+	var tableLenBase16 string
+	tableLenBase16 = eventBody[pos]
+	pos += 1
+	tableLen, _ := util.Base16ToBase10(tableLenBase16)
+	dataMap["table_len"] = tableLen
+
+	// table name
+	var tableName string
+	for _, t := range eventBody[pos : pos+dataMap["table_len"].(int64)] {
+		t, _ = util.Base16ToChar(t)
+		tableName += t
+	}
+	pos = pos + dataMap["table_len"].(int64) + 1
+	dataMap["table_name"] = tableName
+
+	// no of cols
+	var noOfColsBase16 string
+	noOfColsBase16 = eventBody[pos]
+	pos += 1
+	noOfCols, _ := util.Base16ToBase10(noOfColsBase16)
+	dataMap["no_of_cols"] = noOfCols
+
+	// array of col types
+	var arrayOfColTypes []string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+dataMap["no_of_cols"].(int64)]) {
+		typeCode, _ := util.Base16ToBase10(t)
+		switch typeCode {
+		case 0:
+			t = "DECIMAL"
+		case 1:
+			t = "TINY"
+		case 2:
+			t = "SHORT"
+		case 3:
+			t = "LONG"
+		case 4:
+			t = "FLOAT"
+		case 5:
+			t = "DOUBLE"
+		case 6:
+			t = "NULL"
+		case 7:
+			t = "TIMESTAMP"
+		case 8:
+			t = "LONGLONG"
+		case 9:
+			t = "INT24"
+		case 10:
+			t = "DATE"
+		case 11:
+			t = "TIME"
+		case 12:
+			t = "DATETIME"
+		case 13:
+			t = "YEAR"
+		case 14:
+			t = "NEWDATE"
+		case 15:
+			t = "VARCHAR"
+		case 16:
+			t = "BIT"
+		case 17:
+			t = "TIMESTAMP2"
+		case 18:
+			t = "DATETIME2"
+		case 19:
+			t = "TIME2"
+		case 20:
+			t = "TYPED_ARRAY"
+		case 243:
+			t = "INVALID"
+		case 244:
+			t = "BOOL"
+		case 245:
+			t = "JSON"
+		case 246:
+			t = "NEWDECIMAL"
+		case 247:
+			t = "ENUM"
+		case 248:
+			t = "SET"
+		case 249:
+			t = "TINY_BLOB"
+		case 250:
+			t = "MEDIUM_BLOB"
+		case 251:
+			t = "LONG_BLOB"
+		case 252:
+			t = "BLOG"
+		case 253:
+			t = "VAR_STRING"
+		case 254:
+			t = "STRING"
+		case 255:
+			t = "GEOMETRY"
+		}
+		arrayOfColTypes = append(arrayOfColTypes, t)
+	}
+	pos = pos + dataMap["no_of_cols"].(int64)
+	dataMap["array_of_col_types"] = arrayOfColTypes
+
+	// metadata len
+	var metadataLenBase16 string
+	metadataLenBase16 = eventBody[pos]
+	pos += 1
+	metadataLen, _ := util.Base16ToBase10(metadataLenBase16)
+	dataMap["metadata_len"] = metadataLen
+
+	// metadata block
+	var metadataBlock []string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+dataMap["metadata_len"].(int64)]) {
+		metadataBlock = append(metadataBlock, t)
+	}
+	pos += dataMap["metadata_len"].(int64)
+	dataMap["metadata_block"] = metadataBlock
+
+	// m_null_bits
+	var mNullBitsBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+((dataMap["no_of_cols"].(int64)+7)/8)]) {
+		mNullBitsBase16 += t
+	}
+	pos += (dataMap["no_of_cols"].(int64) + 7) / 8
+	mNullBitsBase, _ := util.Base16ToBase2(mNullBitsBase16)
+	dataMap["m_null_bits"] = mNullBitsBase
+
+	// optional_meta_fields
+	if util.Int64ToInt(pos) < len(eventBody) {
+		var optionalMetaFieldsBase16 []interface{}
+		// type
+		var typeCode int64
+		typeCode, _ = util.Base16ToBase10(eventBody[pos])
+		pos += 1
+		optionalMetaFieldsBase16 = append(optionalMetaFieldsBase16, typeCode)
+
+		// length
+		var length int64
+		length, _ = util.Base16ToBase10(eventBody[pos])
+		pos += 1
+		optionalMetaFieldsBase16 = append(optionalMetaFieldsBase16, length)
+
+		// value
+		var value string
+		for _, t := range util.ReverseSlice(eventBody[pos : pos+length]) {
+			value += t
+		}
+		valueBase10, _ := util.Base16ToBase10(value)
+		optionalMetaFieldsBase16 = append(optionalMetaFieldsBase16, valueBase10)
+
+		dataMap["optional_meta_fields"] = optionalMetaFieldsBase16
+	}
+
+	return dataMap
+}
+
+// ParseMetadataBlock TODO parsing the meatadata block in table_map_event
+func ParseMetadataBlock() {
+
 }
 
 // ParseWriteEvent parsing the write_event
