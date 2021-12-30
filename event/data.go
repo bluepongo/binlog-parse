@@ -2,15 +2,53 @@ package event
 
 import (
 	"fmt"
-	"github.com/bluepongo/binlog-parse/util"
 	"strings"
 	"time"
+
+	"github.com/bluepongo/binlog-parse/util"
 )
+
+var colTypeCodeMap = map[int64]string{
+	0:   "DECIMAL",
+	1:   "TINY",
+	2:   "SHORT",
+	3:   "LONG",
+	4:   "FLOAT",
+	5:   "DOUBLE",
+	6:   "NULL",
+	7:   "TIMESTAMP",
+	8:   "LONGLONG",
+	9:   "INT24",
+	10:  "DATE",
+	11:  "TIME",
+	12:  "DATETIME",
+	13:  "YEAR",
+	14:  "NEWDATE",
+	15:  "VARCHAR",
+	16:  "BIT",
+	17:  "TIMESTAMP2",
+	18:  "DATETIME2",
+	19:  "TIME2",
+	20:  "TYPED_ARRAY",
+	243: "INVALID",
+	244: "BOOL",
+	245: "JSON",
+	246: "NEWDECIMAL",
+	247: "ENUM",
+	248: "SET",
+	249: "TINY_BLOB",
+	250: "MEDIUM_BLOB",
+	251: "LONG_BLOB",
+	252: "BLOG",
+	253: "VAR_STRING",
+	254: "STRING",
+	255: "GEOMETRY",
+}
 
 // ParseData determine the Event type and choose the parse function
 func ParseData(content []string, pos int, headerMap map[string]interface{}) map[string]interface{} {
 	eventBody := content[pos+DefaultHeaderLength : headerMap["end_log_p"].(int64)-4]
-	switch EventType(headerMap["type_code"].(int64)) {
+	switch GetEventType(headerMap["type_code"].(int64)) {
 	case "QUERY_EVENT":
 		return ParseQueryEvent(eventBody)
 	case "FORMAT_DESCRIPTION_EVENT":
@@ -261,77 +299,7 @@ func ParseTableMapEvent(eventBody []string) map[string]interface{} {
 	var arrayOfColTypes []string
 	for _, t := range util.ReverseSlice(eventBody[pos : pos+dataMap["no_of_cols"].(int64)]) {
 		typeCode, _ := util.Base16ToBase10(t)
-		switch typeCode {
-		case 0:
-			t = "DECIMAL"
-		case 1:
-			t = "TINY"
-		case 2:
-			t = "SHORT"
-		case 3:
-			t = "LONG"
-		case 4:
-			t = "FLOAT"
-		case 5:
-			t = "DOUBLE"
-		case 6:
-			t = "NULL"
-		case 7:
-			t = "TIMESTAMP"
-		case 8:
-			t = "LONGLONG"
-		case 9:
-			t = "INT24"
-		case 10:
-			t = "DATE"
-		case 11:
-			t = "TIME"
-		case 12:
-			t = "DATETIME"
-		case 13:
-			t = "YEAR"
-		case 14:
-			t = "NEWDATE"
-		case 15:
-			t = "VARCHAR"
-		case 16:
-			t = "BIT"
-		case 17:
-			t = "TIMESTAMP2"
-		case 18:
-			t = "DATETIME2"
-		case 19:
-			t = "TIME2"
-		case 20:
-			t = "TYPED_ARRAY"
-		case 243:
-			t = "INVALID"
-		case 244:
-			t = "BOOL"
-		case 245:
-			t = "JSON"
-		case 246:
-			t = "NEWDECIMAL"
-		case 247:
-			t = "ENUM"
-		case 248:
-			t = "SET"
-		case 249:
-			t = "TINY_BLOB"
-		case 250:
-			t = "MEDIUM_BLOB"
-		case 251:
-			t = "LONG_BLOB"
-		case 252:
-			t = "BLOG"
-		case 253:
-			t = "VAR_STRING"
-		case 254:
-			t = "STRING"
-		case 255:
-			t = "GEOMETRY"
-		}
-		arrayOfColTypes = append(arrayOfColTypes, t)
+		arrayOfColTypes = append(arrayOfColTypes, colTypeCodeMap[typeCode])
 	}
 	pos = pos + dataMap["no_of_cols"].(int64)
 	dataMap["array_of_col_types"] = arrayOfColTypes
@@ -389,7 +357,8 @@ func ParseTableMapEvent(eventBody []string) map[string]interface{} {
 	return dataMap
 }
 
-// ParseMetadataBlock TODO parsing the meatadata block in table_map_event
+// ParseMetadataBlock
+// TODO: parsing the meatadata block in table_map_event
 func ParseMetadataBlock() {
 
 }
@@ -467,7 +436,8 @@ func ParseWriteEvent(eventBody []string) map[string]interface{} {
 	return dataMap
 }
 
-// ParseUpdateEvent parsing the update_event TODO search the columns after image
+// ParseUpdateEvent parsing the update_event
+// TODO: search the columns after image
 func ParseUpdateEvent(eventBody []string) map[string]interface{} {
 	var dataMap map[string]interface{}
 	dataMap = make(map[string]interface{})
@@ -622,7 +592,8 @@ func ParseDeleteEvent(eventBody []string) map[string]interface{} {
 	return dataMap
 }
 
-// ParseRowRealData TODO parsing the row real data in row_event
+// ParseRowRealData
+// TODO: parsing the row real data in row_event
 func ParseRowRealData() {
 
 }

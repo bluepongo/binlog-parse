@@ -4,7 +4,7 @@ import "fmt"
 
 // DisplayHeader display the event header info
 func DisplayHeader(headerMap map[string]interface{}) {
-	eventType := EventType(headerMap["type_code"].(int64))
+	eventType := GetEventType(headerMap["type_code"].(int64))
 	fmt.Printf("%v\n", headerMap["timestamp"])
 	fmt.Printf("[%s]\n", eventType)
 	fmt.Printf("server_id: %v\t", headerMap["server_id"])

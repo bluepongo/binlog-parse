@@ -5,7 +5,7 @@ import "fmt"
 // DisplayData determine the Event type and choose the display function
 func DisplayData(headerMap map[string]interface{}, dataMap map[string]interface{}) {
 
-	switch EventType(headerMap["type_code"].(int64)) {
+	switch GetEventType(headerMap["type_code"].(int64)) {
 	case "QUERY_EVENT":
 		DisplayQueryEvent(dataMap)
 	case "FORMAT_DESCRIPTION_EVENT":

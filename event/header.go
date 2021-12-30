@@ -1,8 +1,9 @@
 package event
 
 import (
-	"github.com/bluepongo/binlog-parse/util"
 	"time"
+
+	"github.com/bluepongo/binlog-parse/util"
 )
 
 const (
@@ -71,30 +72,24 @@ func ParseHeader(content []string, pos int) map[string]interface{} {
 	return headerMap
 }
 
-// EventType mark the event type according to type code
-func EventType(typeCode int64) string {
-	switch typeCode {
-	case 2:
-		return "QUERY_EVENT"
-	case 15:
-		return "FORMAT_DESCRIPTION_EVENT"
-	case 16:
-		return "XID_EVENT"
-	case 19:
-		return "TABLE_MAP_EVENT"
-	case 30:
-		return "WRITE_EVENT"
-	case 31:
-		return "UPDATE_EVENT"
-	case 32:
-		return "DELETE_EVENT"
-	case 33:
-		return "GTID_EVENT"
-	case 34:
-		return "ANONYMOUS_GTID_LOG_EVENT"
-	case 35:
-		return "PREVIOUS_GTID_EVENT"
-	default:
+var eventTypeMap = map[int64]string{
+	2:  "QUERY_EVENT",
+	15: "FORMAT_DESCRIPTION_EVENT",
+	16: "XID_EVENT",
+	19: "TABLE_MAP_EVENT",
+	30: "WRITE_EVENT",
+	31: "UPDATE_EVENT",
+	32: "DELETE_EVENT",
+	33: "GTID_EVENT",
+	34: "ANONYMOUS_GTID_LOG_EVENT",
+	35: "PREVIOUS_GTID_EVENT",
+}
+
+// GetEventType mark the event type according to type code
+func GetEventType(typeCode int64) string {
+	result, ok := eventTypeMap[typeCode]
+	if !ok {
 		return "unknown"
 	}
+	return result
 }
