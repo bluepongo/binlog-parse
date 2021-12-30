@@ -1,0 +1,196 @@
+/*!50530 SET @@SESSION.PSEUDO_SLAVE_MODE=1*/;
+/*!50003 SET @OLD_COMPLETION_TYPE=@@COMPLETION_TYPE,COMPLETION_TYPE=0*/;
+DELIMITER /*!*/;
+# at 4
+#211224 16:08:18 server id 1  end_log_pos 125 CRC32 0x13f6f56d 
+# Position  Timestamp   Type   Master ID        Size      Master Pos    Flags 
+# 00000004 f2 7f c5 61   0f   01 00 00 00   79 00 00 00   7d 00 00 00   01 00
+# 00000017 04 00 38 2e 30 2e 32 33  2d 64 65 62 75 67 00 00 |..8.0.23.debug..|
+# 00000027 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 |................|
+# 00000037 00 00 00 00 00 00 00 00  00 00 00 00 00 00 00 00 |................|
+# 00000047 00 00 00 00 00 00 00 00  13 00 0d 00 08 00 00 00 |................|
+# 00000057 00 04 00 04 00 00 00 61  00 04 1a 08 00 00 00 08 |.......a........|
+# 00000067 08 08 02 00 00 00 0a 0a  0a 2a 2a 00 12 34 00 0a |.............4..|
+# 00000077 28 01 6d f5 f6 13                                |..m...|
+# 	Start: binlog v 4, server v 8.0.23-debug created 211224 16:08:18
+# Warning: this binlog is either in use or was not closed properly.
+# at 125
+#211224 16:08:18 server id 1  end_log_pos 156 CRC32 0xf6064b20 
+# Position  Timestamp   Type   Master ID        Size      Master Pos    Flags 
+# 0000007d f2 7f c5 61   23   01 00 00 00   1f 00 00 00   9c 00 00 00   80 00
+# 00000090 00 00 00 00 00 00 00 00  20 4b 06 f6             |.........K..|
+# 	Previous-GTIDs
+# [empty]
+# at 156
+#211224 16:11:21 server id 1  end_log_pos 235 CRC32 0x0ca377aa 
+# Position  Timestamp   Type   Master ID        Size      Master Pos    Flags 
+# 0000009c a9 80 c5 61   21   01 00 00 00   4f 00 00 00   eb 00 00 00   00 00
+# 000000af 00 c7 18 b1 f6 af cb 11  eb a6 f4 c0 34 c2 33 b5 |............4.3.|
+# 000000bf f2 01 00 00 00 00 00 00  00 02 00 00 00 00 00 00 |................|
+# 000000cf 00 00 01 00 00 00 00 00  00 00 48 80 7d e6 df d3 |..........H.....|
+# 000000df 05 fc 2f 01 97 38 01 00  aa 77 a3 0c             |.....8...w..|
+# 	GTID	last_committed=0	sequence_number=1	rbr_only=yes	original_committed_timestamp=1640333481705544	immediate_commit_timestamp=1640333481705544	transaction_length=303
+/*!50718 SET TRANSACTION ISOLATION LEVEL READ COMMITTED*//*!*/;
+# original_commit_timestamp=1640333481705544 (2021-12-24 16:11:21.705544 CST)
+# immediate_commit_timestamp=1640333481705544 (2021-12-24 16:11:21.705544 CST)
+/*!80001 SET @@session.original_commit_timestamp=1640333481705544*//*!*/;
+/*!80014 SET @@session.original_server_version=80023*//*!*/;
+/*!80014 SET @@session.immediate_server_version=80023*//*!*/;
+SET @@SESSION.GTID_NEXT= 'c718b1f6-afcb-11eb-a6f4-c034c233b5f2:1'/*!*/;
+# at 235
+#211224 16:11:21 server id 1  end_log_pos 315 CRC32 0x6bf3c15c 
+# Position  Timestamp   Type   Master ID        Size      Master Pos    Flags 
+# 000000eb a9 80 c5 61   02   01 00 00 00   50 00 00 00   3b 01 00 00   08 00
+# 000000fe 14 00 00 00 00 00 00 00  09 00 00 1d 00 00 00 00 |................|
+# 0000010e 00 00 01 20 00 a0 45 00  00 00 00 06 03 73 74 64 |......E......std|
+# 0000011e 04 ff 00 ff 00 ff 00 12  ff 00 67 74 69 64 5f 74 |..........gtid.t|
+# 0000012e 65 73 74 00 42 45 47 49  4e 5c c1 f3 6b          |est.BEGIN...k|
+# 	Query	thread_id=20	exec_time=0	error_code=0
+SET TIMESTAMP=1640333481/*!*/;
+SET @@session.pseudo_thread_id=20/*!*/;
+SET @@session.foreign_key_checks=1, @@session.sql_auto_is_null=0, @@session.unique_checks=1, @@session.autocommit=1/*!*/;
+SET @@session.sql_mode=1168113696/*!*/;
+SET @@session.auto_increment_increment=1, @@session.auto_increment_offset=1/*!*/;
+/*!\C utf8mb4 *//*!*/;
+SET @@session.character_set_client=255,@@session.collation_connection=255,@@session.collation_server=255/*!*/;
+SET @@session.lc_time_names=0/*!*/;
+SET @@session.collation_database=DEFAULT/*!*/;
+/*!80011 SET @@session.default_collation_for_utf8mb4=255*//*!*/;
+BEGIN
+/*!*/;
+# at 315
+#211224 16:11:21 server id 1  end_log_pos 383 CRC32 0xfc5bf704 
+# Position  Timestamp   Type   Master ID        Size      Master Pos    Flags 
+# 0000013b a9 80 c5 61   13   01 00 00 00   44 00 00 00   7f 01 00 00   00 00
+# 0000014e 6e 00 00 00 00 00 01 00  09 67 74 69 64 5f 74 65 |n........gtid.te|
+# 0000015e 73 74 00 07 74 65 73 74  30 30 31 00 03 0f 0f 0f |st..test001.....|
+# 0000016e 06 fc 03 fc 03 fc 03 06  02 03 fc ff 00 04 f7 5b |................|
+# 0000017e fc                                               |.|
+# 	Table_map: `gtid_test`.`test001` mapped to number 110
+# at 383
+#211224 16:11:21 server id 1  end_log_pos 428 CRC32 0x27e75af9 
+# Position  Timestamp   Type   Master ID        Size      Master Pos    Flags 
+# 0000017f a9 80 c5 61   1e   01 00 00 00   2d 00 00 00   ac 01 00 00   00 00
+# 00000192 6e 00 00 00 00 00 01 00  02 00 03 ff 00 01 00 36 |n..............6|
+# 000001a2 01 00 36 01 00 36 f9 5a  e7 27                   |..6..6.Z..|
+# 	Write_rows: table id 110 flags: STMT_END_F
+### INSERT INTO `gtid_test`.`test001`
+### SET
+###   @1='6' /* VARSTRING(1020) meta=1020 nullable=0 is_null=0 */
+###   @2='6' /* VARSTRING(1020) meta=1020 nullable=1 is_null=0 */
+###   @3='6' /* VARSTRING(1020) meta=1020 nullable=1 is_null=0 */
+# at 428
+#211224 16:11:21 server id 1  end_log_pos 459 CRC32 0x1c56c095 
+# Position  Timestamp   Type   Master ID        Size      Master Pos    Flags 
+# 000001ac a9 80 c5 61   10   01 00 00 00   1f 00 00 00   cb 01 00 00   00 00
+# 000001bf 27 01 00 00 00 00 00 00  95 c0 56 1c             |..........V.|
+# 	Xid = 295
+COMMIT/*!*/;
+# at 459
+#211224 16:23:13 server id 1  end_log_pos 538 CRC32 0xeaab566e 
+# Position  Timestamp   Type   Master ID        Size      Master Pos    Flags 
+# 000001cb 71 83 c5 61   21   01 00 00 00   4f 00 00 00   1a 02 00 00   00 00
+# 000001de 00 c7 18 b1 f6 af cb 11  eb a6 f4 c0 34 c2 33 b5 |............4.3.|
+# 000001ee f2 02 00 00 00 00 00 00  00 02 01 00 00 00 00 00 |................|
+# 000001fe 00 00 02 00 00 00 00 00  00 00 0e 83 e4 10 e0 d3 |................|
+# 0000020e 05 fc 20 02 97 38 01 00  6e 56 ab ea             |.....8..nV..|
+# 	GTID	last_committed=1	sequence_number=2	rbr_only=yes	original_committed_timestamp=1640334193099534	immediate_commit_timestamp=1640334193099534	transaction_length=544
+/*!50718 SET TRANSACTION ISOLATION LEVEL READ COMMITTED*//*!*/;
+# original_commit_timestamp=1640334193099534 (2021-12-24 16:23:13.099534 CST)
+# immediate_commit_timestamp=1640334193099534 (2021-12-24 16:23:13.099534 CST)
+/*!80001 SET @@session.original_commit_timestamp=1640334193099534*//*!*/;
+/*!80014 SET @@session.original_server_version=80023*//*!*/;
+/*!80014 SET @@session.immediate_server_version=80023*//*!*/;
+SET @@SESSION.GTID_NEXT= 'c718b1f6-afcb-11eb-a6f4-c034c233b5f2:2'/*!*/;
+# at 538
+#211224 16:21:58 server id 1  end_log_pos 618 CRC32 0xcd1c94a0 
+# Position  Timestamp   Type   Master ID        Size      Master Pos    Flags 
+# 0000021a 26 83 c5 61   02   01 00 00 00   50 00 00 00   6a 02 00 00   08 00
+# 0000022d 17 00 00 00 00 00 00 00  09 00 00 1d 00 00 00 00 |................|
+# 0000023d 00 00 01 20 00 a0 45 00  00 00 00 06 03 73 74 64 |......E......std|
+# 0000024d 04 ff 00 ff 00 ff 00 12  ff 00 67 74 69 64 5f 74 |..........gtid.t|
+# 0000025d 65 73 74 00 42 45 47 49  4e a0 94 1c cd          |est.BEGIN....|
+# 	Query	thread_id=23	exec_time=0	error_code=0
+SET TIMESTAMP=1640334118/*!*/;
+BEGIN
+/*!*/;
+# at 618
+#211224 16:21:58 server id 1  end_log_pos 686 CRC32 0xeca99e47 
+# Position  Timestamp   Type   Master ID        Size      Master Pos    Flags 
+# 0000026a 26 83 c5 61   13   01 00 00 00   44 00 00 00   ae 02 00 00   00 00
+# 0000027d 6e 00 00 00 00 00 01 00  09 67 74 69 64 5f 74 65 |n........gtid.te|
+# 0000028d 73 74 00 07 74 65 73 74  30 30 31 00 03 0f 0f 0f |st..test001.....|
+# 0000029d 06 fc 03 fc 03 fc 03 06  02 03 fc ff 00 47 9e a9 |.............G..|
+# 000002ad ec                                               |.|
+# 	Table_map: `gtid_test`.`test001` mapped to number 110
+# at 686
+#211224 16:21:58 server id 1  end_log_pos 731 CRC32 0xcf968f13 
+# Position  Timestamp   Type   Master ID        Size      Master Pos    Flags 
+# 000002ae 26 83 c5 61   1e   01 00 00 00   2d 00 00 00   db 02 00 00   00 00
+# 000002c1 6e 00 00 00 00 00 01 00  02 00 03 ff 00 01 00 38 |n..............8|
+# 000002d1 01 00 38 01 00 38 13 8f  96 cf                   |..8..8....|
+# 	Write_rows: table id 110 flags: STMT_END_F
+### INSERT INTO `gtid_test`.`test001`
+### SET
+###   @1='8' /* VARSTRING(1020) meta=1020 nullable=0 is_null=0 */
+###   @2='8' /* VARSTRING(1020) meta=1020 nullable=1 is_null=0 */
+###   @3='8' /* VARSTRING(1020) meta=1020 nullable=1 is_null=0 */
+# at 731
+#211224 16:22:50 server id 1  end_log_pos 799 CRC32 0xad3f7c98 
+# Position  Timestamp   Type   Master ID        Size      Master Pos    Flags 
+# 000002db 5a 83 c5 61   13   01 00 00 00   44 00 00 00   1f 03 00 00   00 00
+# 000002ee 6e 00 00 00 00 00 01 00  09 67 74 69 64 5f 74 65 |n........gtid.te|
+# 000002fe 73 74 00 07 74 65 73 74  30 30 31 00 03 0f 0f 0f |st..test001.....|
+# 0000030e 06 fc 03 fc 03 fc 03 06  02 03 fc ff 00 98 7c 3f |................|
+# 0000031e ad                                               |.|
+# 	Table_map: `gtid_test`.`test001` mapped to number 110
+# at 799
+#211224 16:22:50 server id 1  end_log_pos 857 CRC32 0x1b662b83 
+# Position  Timestamp   Type   Master ID        Size      Master Pos    Flags 
+# 0000031f 5a 83 c5 61   1f   01 00 00 00   3a 00 00 00   59 03 00 00   00 00
+# 00000332 6e 00 00 00 00 00 01 00  02 00 03 ff ff 00 01 00 |n...............|
+# 00000342 38 01 00 38 01 00 38 00  03 00 36 36 36 01 00 38 |8..8..8...666..8|
+# 00000352 01 00 38 83 2b 66 1b                             |..8..f.|
+# 	Update_rows: table id 110 flags: STMT_END_F
+### UPDATE `gtid_test`.`test001`
+### WHERE
+###   @1='8' /* VARSTRING(1020) meta=1020 nullable=0 is_null=0 */
+###   @2='8' /* VARSTRING(1020) meta=1020 nullable=1 is_null=0 */
+###   @3='8' /* VARSTRING(1020) meta=1020 nullable=1 is_null=0 */
+### SET
+###   @1='666' /* VARSTRING(1020) meta=1020 nullable=0 is_null=0 */
+###   @2='8' /* VARSTRING(1020) meta=1020 nullable=1 is_null=0 */
+###   @3='8' /* VARSTRING(1020) meta=1020 nullable=1 is_null=0 */
+# at 857
+#211224 16:23:08 server id 1  end_log_pos 925 CRC32 0xa00e69bd 
+# Position  Timestamp   Type   Master ID        Size      Master Pos    Flags 
+# 00000359 6c 83 c5 61   13   01 00 00 00   44 00 00 00   9d 03 00 00   00 00
+# 0000036c 6e 00 00 00 00 00 01 00  09 67 74 69 64 5f 74 65 |n........gtid.te|
+# 0000037c 73 74 00 07 74 65 73 74  30 30 31 00 03 0f 0f 0f |st..test001.....|
+# 0000038c 06 fc 03 fc 03 fc 03 06  02 03 fc ff 00 bd 69 0e |..............i.|
+# 0000039c a0                                               |.|
+# 	Table_map: `gtid_test`.`test001` mapped to number 110
+# at 925
+#211224 16:23:08 server id 1  end_log_pos 972 CRC32 0x6141a68d 
+# Position  Timestamp   Type   Master ID        Size      Master Pos    Flags 
+# 0000039d 6c 83 c5 61   20   01 00 00 00   2f 00 00 00   cc 03 00 00   00 00
+# 000003b0 6e 00 00 00 00 00 01 00  02 00 03 ff 00 03 00 36 |n..............6|
+# 000003c0 36 36 01 00 38 01 00 38  8d a6 41 61             |66..8..8..Aa|
+# 	Delete_rows: table id 110 flags: STMT_END_F
+### DELETE FROM `gtid_test`.`test001`
+### WHERE
+###   @1='666' /* VARSTRING(1020) meta=1020 nullable=0 is_null=0 */
+###   @2='8' /* VARSTRING(1020) meta=1020 nullable=1 is_null=0 */
+###   @3='8' /* VARSTRING(1020) meta=1020 nullable=1 is_null=0 */
+# at 972
+#211224 16:23:13 server id 1  end_log_pos 1003 CRC32 0x80ae4c5f 
+# Position  Timestamp   Type   Master ID        Size      Master Pos    Flags 
+# 000003cc 71 83 c5 61   10   01 00 00 00   1f 00 00 00   eb 03 00 00   00 00
+# 000003df 3e 01 00 00 00 00 00 00  5f 4c ae 80             |.........L..|
+# 	Xid = 318
+COMMIT/*!*/;
+SET @@SESSION.GTID_NEXT= 'AUTOMATIC' /* added by mysqlbinlog */ /*!*/;
+DELIMITER ;
+# End of log file
+/*!50003 SET COMPLETION_TYPE=@OLD_COMPLETION_TYPE*/;
+/*!50530 SET @@SESSION.PSEUDO_SLAVE_MODE=0*/;
