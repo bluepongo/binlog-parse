@@ -20,11 +20,11 @@ func ParseData(content []string, pos int, headerMap map[string]interface{}) map[
 	case "TABLE_MAP_EVENT":
 		return ParseTableMapEvent(eventBody)
 	case "WRITE_EVENT":
-		ParseWriteEvent(eventBody)
+		return ParseWriteEvent(eventBody)
 	case "UPDATE_EVENT":
-		ParseUpdateEvent(eventBody)
+		return ParseUpdateEvent(eventBody)
 	case "DELETE_EVENT":
-		ParseDeleteEvent(eventBody)
+		return ParseDeleteEvent(eventBody)
 	case "GTID_EVENT":
 		ParseGtidEvent(eventBody)
 	case "ANONYMOUS_GTID_LOG_EVENT":
@@ -395,18 +395,236 @@ func ParseMetadataBlock() {
 }
 
 // ParseWriteEvent parsing the write_event
-func ParseWriteEvent(eventBody []string) {
-	fmt.Println(eventBody)
+func ParseWriteEvent(eventBody []string) map[string]interface{} {
+	var dataMap map[string]interface{}
+	dataMap = make(map[string]interface{})
+	var pos int64
+	pos = 0
+
+	// table_id
+	var tableIDBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+6]) {
+		tableIDBase16 += t
+	}
+	pos += 6
+	tableID, _ := util.Base16ToBase10(tableIDBase16)
+	dataMap["table_id"] = tableID
+
+	// Reserved
+	var reservedBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+2]) {
+		reservedBase16 += t
+	}
+	pos += 2
+	reserved, _ := util.Base16ToBase10(reservedBase16)
+	dataMap["reserved"] = reserved
+
+	// var_header_len
+	var varHeaderLenBase16 string
+	varHeaderLenBase16 = "0x"
+	for _, t := range eventBody[pos : pos+2] {
+		varHeaderLenBase16 += t
+	}
+	pos += 2
+	varHeaderLen, _ := util.Base16ToBase10(varHeaderLenBase16)
+	dataMap["var_header_len"] = varHeaderLen
+
+	// columns_width
+	var colWidth int64
+	colWidth, _ = util.Base16ToBase10(eventBody[pos])
+	pos += 1
+	dataMap["columns_width"] = colWidth
+
+	// columns_after_image (don't consider binlog_row_image set to FULL)
+	var columnsAfterImageBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+((dataMap["columns_width"].(int64)+7)/8)]) {
+		columnsAfterImageBase16 += t
+	}
+	pos += (dataMap["columns_width"].(int64) + 7) / 8
+	columnsAfterImage, _ := util.Base16ToBase2(columnsAfterImageBase16)
+	dataMap["columns_after_image"] = columnsAfterImage
+
+	// row Bit-field
+	var rowBitFieldBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+((dataMap["columns_width"].(int64)+7)/8)]) {
+		rowBitFieldBase16 += t
+	}
+	pos += (dataMap["columns_width"].(int64) + 7) / 8
+	rowBitField, _ := util.Base16ToBase2(rowBitFieldBase16)
+	var tmp string
+	zeroNo := util.Int64ToInt(dataMap["columns_width"].(int64)) - len(rowBitField)
+	for i := zeroNo; i > 0; i-- {
+		tmp += "0"
+	}
+	rowBitField = tmp + rowBitField
+	dataMap["row_Bit_field"] = rowBitField
+
+	// row real data
+	var rowRealData []string
+	rowRealData = eventBody[pos:]
+	dataMap["row_real_data"] = rowRealData
+
+	return dataMap
 }
 
-// ParseUpdateEvent parsing the update_event
-func ParseUpdateEvent(eventBody []string) {
-	fmt.Println(eventBody)
+// ParseUpdateEvent parsing the update_event TODO search the columns after image
+func ParseUpdateEvent(eventBody []string) map[string]interface{} {
+	var dataMap map[string]interface{}
+	dataMap = make(map[string]interface{})
+	var pos int64
+	pos = 0
+
+	// table_id
+	var tableIDBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+6]) {
+		tableIDBase16 += t
+	}
+	pos += 6
+	tableID, _ := util.Base16ToBase10(tableIDBase16)
+	dataMap["table_id"] = tableID
+
+	// Reserved
+	var reservedBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+2]) {
+		reservedBase16 += t
+	}
+	pos += 2
+	reserved, _ := util.Base16ToBase10(reservedBase16)
+	dataMap["reserved"] = reserved
+
+	// var_header_len
+	var varHeaderLenBase16 string
+	varHeaderLenBase16 = "0x"
+	for _, t := range eventBody[pos : pos+2] {
+		varHeaderLenBase16 += t
+	}
+	pos += 2
+	varHeaderLen, _ := util.Base16ToBase10(varHeaderLenBase16)
+	dataMap["var_header_len"] = varHeaderLen
+
+	// columns_width
+	var colWidth int64
+	colWidth, _ = util.Base16ToBase10(eventBody[pos])
+	pos += 1
+	dataMap["columns_width"] = colWidth
+
+	// columns_before_image (don't consider binlog_row_image set to FULL)
+	var columnsBeforeImageBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+((dataMap["columns_width"].(int64)+7)/8)]) {
+		columnsBeforeImageBase16 += t
+	}
+	pos += (dataMap["columns_width"].(int64) + 7) / 8
+	columnsBeforeImage, _ := util.Base16ToBase2(columnsBeforeImageBase16)
+	dataMap["columns_before_image"] = columnsBeforeImage
+
+	// columns_after_image (don't consider binlog_row_image set to FULL)
+	var columnsAfterImageBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+((dataMap["columns_width"].(int64)+7)/8)]) {
+		columnsAfterImageBase16 += t
+	}
+	pos += (dataMap["columns_width"].(int64) + 7) / 8
+	columnsAfterImage, _ := util.Base16ToBase2(columnsAfterImageBase16)
+	dataMap["columns_after_image"] = columnsAfterImage
+
+	// row Bit-field
+	var rowBitFieldBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+((dataMap["columns_width"].(int64)+7)/8)]) {
+		rowBitFieldBase16 += t
+	}
+	pos += (dataMap["columns_width"].(int64) + 7) / 8
+	rowBitField, _ := util.Base16ToBase2(rowBitFieldBase16)
+	var tmp string
+	zeroNo := util.Int64ToInt(dataMap["columns_width"].(int64)) - len(rowBitField)
+	for i := zeroNo; i > 0; i-- {
+		tmp += "0"
+	}
+	rowBitField = tmp + rowBitField
+	dataMap["row_Bit_field"] = rowBitField
+
+	// row real data
+	var rowRealData []string
+	rowRealData = eventBody[pos:]
+	dataMap["row_real_data"] = rowRealData
+
+	return dataMap
 }
 
 // ParseDeleteEvent parsing the delete_event
-func ParseDeleteEvent(eventBody []string) {
-	fmt.Println(eventBody)
+func ParseDeleteEvent(eventBody []string) map[string]interface{} {
+	var dataMap map[string]interface{}
+	dataMap = make(map[string]interface{})
+	var pos int64
+	pos = 0
+
+	// table_id
+	var tableIDBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+6]) {
+		tableIDBase16 += t
+	}
+	pos += 6
+	tableID, _ := util.Base16ToBase10(tableIDBase16)
+	dataMap["table_id"] = tableID
+
+	// Reserved
+	var reservedBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+2]) {
+		reservedBase16 += t
+	}
+	pos += 2
+	reserved, _ := util.Base16ToBase10(reservedBase16)
+	dataMap["reserved"] = reserved
+
+	// var_header_len
+	var varHeaderLenBase16 string
+	varHeaderLenBase16 = "0x"
+	for _, t := range eventBody[pos : pos+2] {
+		varHeaderLenBase16 += t
+	}
+	pos += 2
+	varHeaderLen, _ := util.Base16ToBase10(varHeaderLenBase16)
+	dataMap["var_header_len"] = varHeaderLen
+
+	// columns_width
+	var colWidth int64
+	colWidth, _ = util.Base16ToBase10(eventBody[pos])
+	pos += 1
+	dataMap["columns_width"] = colWidth
+
+	// columns_before_image (don't consider binlog_row_image set to FULL)
+	var columnsBeforeImageBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+((dataMap["columns_width"].(int64)+7)/8)]) {
+		columnsBeforeImageBase16 += t
+	}
+	pos += (dataMap["columns_width"].(int64) + 7) / 8
+	columnsBeforeImage, _ := util.Base16ToBase2(columnsBeforeImageBase16)
+	dataMap["columns_before_image"] = columnsBeforeImage
+
+	// row Bit-field
+	var rowBitFieldBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+((dataMap["columns_width"].(int64)+7)/8)]) {
+		rowBitFieldBase16 += t
+	}
+	pos += (dataMap["columns_width"].(int64) + 7) / 8
+	rowBitField, _ := util.Base16ToBase2(rowBitFieldBase16)
+	var tmp string
+	zeroNo := util.Int64ToInt(dataMap["columns_width"].(int64)) - len(rowBitField)
+	for i := zeroNo; i > 0; i-- {
+		tmp += "0"
+	}
+	rowBitField = tmp + rowBitField
+	dataMap["row_Bit_field"] = rowBitField
+
+	// row real data
+	var rowRealData []string
+	rowRealData = eventBody[pos:]
+	dataMap["row_real_data"] = rowRealData
+
+	return dataMap
+}
+
+// ParseRowRealData TODO parsing the row real data in row_event
+func ParseRowRealData() {
+
 }
 
 // ParseGtidEvent parsing the gtid_event

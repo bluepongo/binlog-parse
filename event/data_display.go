@@ -14,6 +14,12 @@ func DisplayData(headerMap map[string]interface{}, dataMap map[string]interface{
 		DisplayXIDEvent(dataMap)
 	case "TABLE_MAP_EVENT":
 		DisplayTableMapEvent(dataMap)
+	case "WRITE_EVENT":
+		DisplayWriteEvent(dataMap)
+	case "UPDATE_EVENT":
+		DisplayUpdateEvent(dataMap)
+	case "DELETE_EVENT":
+		DisplayDeleteEvent(dataMap)
 	}
 }
 
@@ -63,5 +69,28 @@ func DisplayTableMapEvent(dataMap map[string]interface{}) {
 			dataMap["optional_meta_fields"].([]interface{})[2],
 		)
 	}
+}
 
+// DisplayWriteEvent  display the write_event info
+func DisplayWriteEvent(dataMap map[string]interface{}) {
+	fmt.Printf("[data body]\n")
+	fmt.Printf("table_id: %v\t", dataMap["table_id"])
+	fmt.Printf("row Bit-field: %v\n", dataMap["table_id"])
+	fmt.Printf("row real data: %v\n", dataMap["row_real_data"])
+}
+
+// DisplayUpdateEvent  display the update_event info
+func DisplayUpdateEvent(dataMap map[string]interface{}) {
+	fmt.Printf("[data body]\n")
+	fmt.Printf("table_id: %v\t", dataMap["table_id"])
+	fmt.Printf("row Bit-field: %v\n", dataMap["table_id"])
+	fmt.Printf("row real data: %v\n", dataMap["row_real_data"])
+}
+
+// DisplayDeleteEvent  display the delete_event info
+func DisplayDeleteEvent(dataMap map[string]interface{}) {
+	fmt.Printf("[data body]\n")
+	fmt.Printf("table_id: %v\n", dataMap["table_id"])
+	fmt.Printf("row Bit-field: %v\n", dataMap["table_id"])
+	fmt.Printf("row real data: %v\n", dataMap["row_real_data"])
 }
