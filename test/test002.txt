@@ -1,0 +1,103 @@
+/*!50530 SET @@SESSION.PSEUDO_SLAVE_MODE=1*/;
+/*!50003 SET @OLD_COMPLETION_TYPE=@@COMPLETION_TYPE,COMPLETION_TYPE=0*/;
+DELIMITER /*!*/;
+# at 4
+#211224 16:08:18 server id 1  end_log_pos 125 CRC32 0x13f6f56d 	Start: binlog v 4, server v 8.0.23-debug created 211224 16:08:18
+# Warning: this binlog is either in use or was not closed properly.
+BINLOG '
+8n/FYQ8BAAAAeQAAAH0AAAABAAQAOC4wLjIzLWRlYnVnAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA
+AAAAAAAAAAAAAAAAAAAAAAAAEwANAAgAAAAABAAEAAAAYQAEGggAAAAICAgCAAAACgoKKioAEjQA
+CigBbfX2Ew==
+'/*!*/;
+# at 125
+#211224 16:08:18 server id 1  end_log_pos 156 CRC32 0xf6064b20 	Previous-GTIDs
+# [empty]
+# at 156
+#211224 16:11:21 server id 1  end_log_pos 235 CRC32 0x0ca377aa 	GTID	last_committed=0	sequence_number=1	rbr_only=yes	original_committed_timestamp=1640333481705544	immediate_commit_timestamp=1640333481705544	transaction_length=303
+/*!50718 SET TRANSACTION ISOLATION LEVEL READ COMMITTED*//*!*/;
+# original_commit_timestamp=1640333481705544 (2021-12-24 16:11:21.705544 CST)
+# immediate_commit_timestamp=1640333481705544 (2021-12-24 16:11:21.705544 CST)
+/*!80001 SET @@session.original_commit_timestamp=1640333481705544*//*!*/;
+/*!80014 SET @@session.original_server_version=80023*//*!*/;
+/*!80014 SET @@session.immediate_server_version=80023*//*!*/;
+SET @@SESSION.GTID_NEXT= 'c718b1f6-afcb-11eb-a6f4-c034c233b5f2:1'/*!*/;
+# at 235
+#211224 16:11:21 server id 1  end_log_pos 315 CRC32 0x6bf3c15c 	Query	thread_id=20	exec_time=0	error_code=0
+SET TIMESTAMP=1640333481/*!*/;
+SET @@session.pseudo_thread_id=20/*!*/;
+SET @@session.foreign_key_checks=1, @@session.sql_auto_is_null=0, @@session.unique_checks=1, @@session.autocommit=1/*!*/;
+SET @@session.sql_mode=1168113696/*!*/;
+SET @@session.auto_increment_increment=1, @@session.auto_increment_offset=1/*!*/;
+/*!\C utf8mb4 *//*!*/;
+SET @@session.character_set_client=255,@@session.collation_connection=255,@@session.collation_server=255/*!*/;
+SET @@session.lc_time_names=0/*!*/;
+SET @@session.collation_database=DEFAULT/*!*/;
+/*!80011 SET @@session.default_collation_for_utf8mb4=255*//*!*/;
+BEGIN
+/*!*/;
+# at 315
+#211224 16:11:21 server id 1  end_log_pos 383 CRC32 0xfc5bf704 	Table_map: `gtid_test`.`test001` mapped to number 110
+# at 383
+#211224 16:11:21 server id 1  end_log_pos 428 CRC32 0x27e75af9 	Write_rows: table id 110 flags: STMT_END_F
+
+BINLOG '
+qYDFYRMBAAAARAAAAH8BAAAAAG4AAAAAAAEACWd0aWRfdGVzdAAHdGVzdDAwMQADDw8PBvwD/AP8
+AwYCA/z/AAT3W/w=
+qYDFYR4BAAAALQAAAKwBAAAAAG4AAAAAAAEAAgAD/wABADYBADYBADb5Wucn
+'/*!*/;
+# at 428
+#211224 16:11:21 server id 1  end_log_pos 459 CRC32 0x1c56c095 	Xid = 295
+COMMIT/*!*/;
+# at 459
+#211224 16:23:13 server id 1  end_log_pos 538 CRC32 0xeaab566e 	GTID	last_committed=1	sequence_number=2	rbr_only=yes	original_committed_timestamp=1640334193099534	immediate_commit_timestamp=1640334193099534	transaction_length=544
+/*!50718 SET TRANSACTION ISOLATION LEVEL READ COMMITTED*//*!*/;
+# original_commit_timestamp=1640334193099534 (2021-12-24 16:23:13.099534 CST)
+# immediate_commit_timestamp=1640334193099534 (2021-12-24 16:23:13.099534 CST)
+/*!80001 SET @@session.original_commit_timestamp=1640334193099534*//*!*/;
+/*!80014 SET @@session.original_server_version=80023*//*!*/;
+/*!80014 SET @@session.immediate_server_version=80023*//*!*/;
+SET @@SESSION.GTID_NEXT= 'c718b1f6-afcb-11eb-a6f4-c034c233b5f2:2'/*!*/;
+# at 538
+#211224 16:21:58 server id 1  end_log_pos 618 CRC32 0xcd1c94a0 	Query	thread_id=23	exec_time=0	error_code=0
+SET TIMESTAMP=1640334118/*!*/;
+BEGIN
+/*!*/;
+# at 618
+#211224 16:21:58 server id 1  end_log_pos 686 CRC32 0xeca99e47 	Table_map: `gtid_test`.`test001` mapped to number 110
+# at 686
+#211224 16:21:58 server id 1  end_log_pos 731 CRC32 0xcf968f13 	Write_rows: table id 110 flags: STMT_END_F
+
+BINLOG '
+JoPFYRMBAAAARAAAAK4CAAAAAG4AAAAAAAEACWd0aWRfdGVzdAAHdGVzdDAwMQADDw8PBvwD/AP8
+AwYCA/z/AEeeqew=
+JoPFYR4BAAAALQAAANsCAAAAAG4AAAAAAAEAAgAD/wABADgBADgBADgTj5bP
+'/*!*/;
+# at 731
+#211224 16:22:50 server id 1  end_log_pos 799 CRC32 0xad3f7c98 	Table_map: `gtid_test`.`test001` mapped to number 110
+# at 799
+#211224 16:22:50 server id 1  end_log_pos 857 CRC32 0x1b662b83 	Update_rows: table id 110 flags: STMT_END_F
+
+BINLOG '
+WoPFYRMBAAAARAAAAB8DAAAAAG4AAAAAAAEACWd0aWRfdGVzdAAHdGVzdDAwMQADDw8PBvwD/AP8
+AwYCA/z/AJh8P60=
+WoPFYR8BAAAAOgAAAFkDAAAAAG4AAAAAAAEAAgAD//8AAQA4AQA4AQA4AAMANjY2AQA4AQA4gytm
+Gw==
+'/*!*/;
+# at 857
+#211224 16:23:08 server id 1  end_log_pos 925 CRC32 0xa00e69bd 	Table_map: `gtid_test`.`test001` mapped to number 110
+# at 925
+#211224 16:23:08 server id 1  end_log_pos 972 CRC32 0x6141a68d 	Delete_rows: table id 110 flags: STMT_END_F
+
+BINLOG '
+bIPFYRMBAAAARAAAAJ0DAAAAAG4AAAAAAAEACWd0aWRfdGVzdAAHdGVzdDAwMQADDw8PBvwD/AP8
+AwYCA/z/AL1pDqA=
+bIPFYSABAAAALwAAAMwDAAAAAG4AAAAAAAEAAgAD/wADADY2NgEAOAEAOI2mQWE=
+'/*!*/;
+# at 972
+#211224 16:23:13 server id 1  end_log_pos 1003 CRC32 0x80ae4c5f 	Xid = 318
+COMMIT/*!*/;
+SET @@SESSION.GTID_NEXT= 'AUTOMATIC' /* added by mysqlbinlog */ /*!*/;
+DELIMITER ;
+# End of log file
+/*!50003 SET COMPLETION_TYPE=@OLD_COMPLETION_TYPE*/;
+/*!50530 SET @@SESSION.PSEUDO_SLAVE_MODE=0*/;
