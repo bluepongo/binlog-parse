@@ -64,7 +64,7 @@ func ParseData(content []string, pos int, headerMap map[string]interface{}) map[
 	case "DELETE_EVENT":
 		return ParseDeleteEvent(eventBody)
 	case "GTID_EVENT":
-		ParseGtidEvent(eventBody)
+		return ParseGtidEvent(eventBody)
 	case "ANONYMOUS_GTID_LOG_EVENT":
 		ParseAnonymousGtidLogEvent(eventBody)
 	case "PREVIOUS_GTID_EVENT":
@@ -424,13 +424,117 @@ func ParseRowRealData() {
 }
 
 // ParseGtidEvent parsing the gtid_event
-func ParseGtidEvent(eventBody []string) {
-	fmt.Println(eventBody)
+func ParseGtidEvent(eventBody []string) map[string]interface{} {
+	var dataMap map[string]interface{}
+	dataMap = make(map[string]interface{})
+	var pos int64
+	pos = 0
+
+	// flag
+	if eventBody[pos] == "00" {
+		dataMap["flags"] = "ROW"
+	} else {
+		dataMap["flags"] = "STATEMENT"
+	}
+	pos += 1
+
+	// server_uuid
+	var serverUuid string
+	format := 0
+	for _, t := range eventBody[pos : pos+16] {
+		serverUuid += t
+		format += 1
+		if format == 4 || format == 6 || format == 8 || format == 10 || format == 12 {
+			serverUuid += "-"
+		}
+	}
+	pos += 16
+	dataMap["server_uuid"] = serverUuid
+
+	// gno
+	var gnoBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+8]) {
+		gnoBase16 += t
+	}
+	pos += 8
+	gno, _ := util.Base16ToBase10(gnoBase16)
+	dataMap["gno"] = gno
+
+	// ts type
+	var tsType string
+	tsType = eventBody[pos]
+	pos += 1
+	dataMap["ts_type"] = tsType
+
+	// last commit
+	var lastCommitBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+8]) {
+		lastCommitBase16 += t
+	}
+	pos += 8
+	lastCommit, _ := util.Base16ToBase10(lastCommitBase16)
+	dataMap["last_commit"] = lastCommit
+
+	// seq number
+	var seqNumberBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+8]) {
+		seqNumberBase16 += t
+	}
+	pos += 8
+	seqNumber, _ := util.Base16ToBase10(seqNumberBase16)
+	dataMap["seq_number"] = seqNumber
+
+	return dataMap
 }
 
 // ParseAnonymousGtidLogEvent parsing the anonymous_gtid_log_event
-func ParseAnonymousGtidLogEvent(eventBody []string) {
-	fmt.Println(eventBody)
+func ParseAnonymousGtidLogEvent(eventBody []string) map[string]interface{} {
+	var dataMap map[string]interface{}
+	dataMap = make(map[string]interface{})
+	var pos int64
+	pos = 0
+
+	// flag
+	if eventBody[pos] == "00" {
+		dataMap["flags"] = "ROW"
+	} else {
+		dataMap["flags"] = "STATEMENT"
+	}
+	pos += 1
+
+	// server_uuid
+	pos += 16
+	dataMap["server_uuid"] = 0
+
+	// gno
+	pos += 8
+	dataMap["gno"] = 0
+
+	// ts type
+	var tsType string
+	tsType = eventBody[pos]
+	pos += 1
+	dataMap["ts_type"] = tsType
+
+	// last commit
+	var lastCommitBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+8]) {
+		lastCommitBase16 += t
+	}
+	pos += 8
+	lastCommit, _ := util.Base16ToBase10(lastCommitBase16)
+	dataMap["last_commit"] = lastCommit
+
+	// seq number
+	var seqNumberBase16 string
+	for _, t := range util.ReverseSlice(eventBody[pos : pos+8]) {
+		seqNumberBase16 += t
+	}
+	pos += 8
+	seqNumber, _ := util.Base16ToBase10(seqNumberBase16)
+	dataMap["seq_number"] = seqNumber
+
+	return dataMap
 }
 
 // ParsePreviousGtidEvent parsing the previous_gtid_event

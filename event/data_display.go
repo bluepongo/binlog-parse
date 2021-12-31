@@ -20,6 +20,8 @@ func DisplayData(headerMap map[string]interface{}, dataMap map[string]interface{
 		DisplayUpdateEvent(dataMap)
 	case "DELETE_EVENT":
 		DisplayDeleteEvent(dataMap)
+	case "GTID_EVENT":
+		DisplayGtidEvent(dataMap)
 	}
 }
 
@@ -93,4 +95,22 @@ func DisplayDeleteEvent(dataMap map[string]interface{}) {
 	fmt.Printf("table_id: %v\n", dataMap["table_id"])
 	fmt.Printf("row Bit-field: %v\n", dataMap["table_id"])
 	fmt.Printf("row real data: %v\n", dataMap["row_real_data"])
+}
+
+// DisplayGtidEvent display the gtid_event info
+func DisplayGtidEvent(dataMap map[string]interface{}) {
+	fmt.Printf("[data body]\n")
+	fmt.Printf("bin-log type: %v\t", dataMap["flags"])
+	fmt.Printf("server_uuid: %v:%v\t", dataMap["server_uuid"], dataMap["gno"])
+	fmt.Printf("last committed: %v\t", dataMap["last_commit"])
+	fmt.Printf("seq number: %v\n", dataMap["seq_number"])
+}
+
+// DisplayAnonymousGtidEvent display the gtid_event info
+func DisplayAnonymousGtidEvent(dataMap map[string]interface{}) {
+	fmt.Printf("[data body]\n")
+	fmt.Printf("bin-log type: %v\t", dataMap["flags"])
+	fmt.Printf("server_uuid: %v:%v\t", dataMap["server_uuid"], dataMap["gno"])
+	fmt.Printf("last committed: %v\t", dataMap["last_commit"])
+	fmt.Printf("seq number: %v\n", dataMap["seq_number"])
 }
