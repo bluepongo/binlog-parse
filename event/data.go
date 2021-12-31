@@ -75,80 +75,75 @@ func ParseData(content []string, pos int, headerMap map[string]interface{}) map[
 	return nil
 }
 
+type eventParser struct {
+	bodys  []string
+	cursor int64
+}
+
+func (ep *eventParser) extractBody(l int64) string {
+	if l == 0 {
+		l = int64(len(ep.bodys)) - ep.cursor
+	}
+	result := ""
+	for _, t := range util.EndianConversion(ep.bodys[ep.cursor : ep.cursor+l]) {
+		result += t
+	}
+	ep.cursor += l
+	return result
+}
+
+func (ep *eventParser) extractBodyToChar(l int64) string {
+	if l == 0 {
+		l = int64(len(ep.bodys)) - ep.cursor
+	}
+	result := ""
+	for _, t := range ep.bodys[ep.cursor : ep.cursor+l] {
+		t, _ = util.Base16ToChar(t)
+		result += t
+	}
+	ep.cursor += l
+	return result
+}
+
+func (ep *eventParser) pushCursor(len int64) {
+	ep.cursor += len
+}
+
 // ParseQueryEvent parsing the query_event
 func ParseQueryEvent(eventBody []string) map[string]interface{} {
 	var dataMap map[string]interface{}
 	dataMap = make(map[string]interface{})
-	var pos int64
-	pos = 0
+	ep := eventParser{eventBody, 0}
 
 	// slave_proxy_id
-	var slaveProxyIDBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+4]) {
-		slaveProxyIDBase16 += t
-	}
-	pos += 4
-	slaveProxyID, _ := util.Base16ToBase10(slaveProxyIDBase16)
+	slaveProxyID, _ := util.Base16ToBase10(ep.extractBody(4))
 	dataMap["slave_proxy_id"] = slaveProxyID
 
 	// query_exec_time
-	var queryExecTimeBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+4]) {
-		queryExecTimeBase16 += t
-	}
-	pos += 4
-	queryExecTime, _ := util.Base16ToBase10(queryExecTimeBase16)
+	queryExecTime, _ := util.Base16ToBase10(ep.extractBody(4))
 	dataMap["query_exec_time"] = queryExecTime
 
 	// db_len
-	var dbLenBase16 string
-	dbLenBase16 = eventBody[pos]
-	pos += 1
-	dbLen, _ := util.Base16ToBase10(dbLenBase16)
+	dbLen, _ := util.Base16ToBase10(ep.extractBody(1))
 	dataMap["db_len"] = dbLen
 
 	// error_code
-	var errorCodeBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+2]) {
-		errorCodeBase16 += t
-	}
-	pos += 2
-	errorCode, _ := util.Base16ToBase10(errorCodeBase16)
+	errorCode, _ := util.Base16ToBase10(ep.extractBody(2))
 	dataMap["error_code"] = errorCode
 
 	// status_vars_len
-	var statusVarsLenBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+2]) {
-		statusVarsLenBase16 += t
-	}
-	pos += 2
-	statusVarsLen, _ := util.Base16ToBase10(statusVarsLenBase16)
+	statusVarsLen, _ := util.Base16ToBase10(ep.extractBody(2))
 	dataMap["status_vars_len"] = statusVarsLen
 
 	// status variables
-	var statusVariablesBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+dataMap["status_vars_len"].(int64)]) {
-		statusVariablesBase16 += t
-	}
-	pos += dataMap["status_vars_len"].(int64)
-	dataMap["status_variables"] = statusVariablesBase16
+	dataMap["status_variables"] = ep.extractBody(statusVarsLen)
 
 	// db
-	var db string
-	for _, t := range eventBody[pos : pos+dataMap["db_len"].(int64)] {
-		t, _ = util.Base16ToChar(t)
-		db += t
-	}
-	pos = pos + dataMap["db_len"].(int64) + 1
-	dataMap["db"] = db
+	dataMap["db"] = ep.extractBodyToChar(dbLen)
+	ep.pushCursor(1)
 
 	// query
-	var query string
-	for _, t := range eventBody[pos:] {
-		t, _ = util.Base16ToChar(t)
-		query += t
-	}
-	dataMap["query"] = query
+	dataMap["query"] = ep.extractBodyToChar(0)
 
 	return dataMap
 }
@@ -157,34 +152,19 @@ func ParseQueryEvent(eventBody []string) map[string]interface{} {
 func ParseFormatDescriptionEvent(eventBody []string) map[string]interface{} {
 	var dataMap map[string]interface{}
 	dataMap = make(map[string]interface{})
-	var pos int64
-	pos = 0
+	ep := eventParser{eventBody, 0}
 
 	// binlog_version
-	var binlogVersionBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+2]) {
-		binlogVersionBase16 += t
-	}
-	pos += 2
-	binlogVersion, _ := util.Base16ToBase10(binlogVersionBase16)
+	binlogVersion, _ := util.Base16ToBase10(ep.extractBody(2))
 	dataMap["binlog_version"] = binlogVersion
 
 	// server_version
-	var serverVersion string
-	for _, t := range eventBody[pos : pos+50] {
-		t, _ = util.Base16ToChar(t)
-		serverVersion += t
-	}
-	pos += 50
+	serverVersion := ep.extractBodyToChar(50)
 	serverVersion = strings.Replace(serverVersion, "\u0000", "", -1)
 	dataMap["server_version"] = serverVersion
 
 	// create_timestamp
-	var createTimeBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+4]) {
-		createTimeBase16 += t
-	}
-	createTimeUnix, _ := util.Base16ToBase10(createTimeBase16)
+	createTimeUnix, _ := util.Base16ToBase10(ep.extractBody(4))
 	if createTimeUnix == 0 {
 		dataMap["create_time"] = 0
 		dataMap["create_timestamp"] = 0
@@ -195,18 +175,11 @@ func ParseFormatDescriptionEvent(eventBody []string) map[string]interface{} {
 	}
 
 	// header_length
-	var headerLengthBase16 string
-	headerLengthBase16 = eventBody[pos]
-	pos += 1
-	headerLength, _ := util.Base16ToBase10(headerLengthBase16)
+	headerLength, _ := util.Base16ToBase10(ep.extractBody(1))
 	dataMap["header_length"] = headerLength
 
 	// array of post-header
-	var arrayOfPostHeaderBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos:]) {
-		arrayOfPostHeaderBase16 += t
-	}
-	dataMap["array_of_post-header"] = arrayOfPostHeaderBase16
+	dataMap["array_of_post-header"] = ep.extractBody(0)
 
 	return dataMap
 }
@@ -215,16 +188,10 @@ func ParseFormatDescriptionEvent(eventBody []string) map[string]interface{} {
 func ParseXIDEvent(eventBody []string) map[string]interface{} {
 	var dataMap map[string]interface{}
 	dataMap = make(map[string]interface{})
-	var pos int64
-	pos = 0
+	ep := eventParser{eventBody, 0}
 
 	// XID
-	var xidBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos:]) {
-		xidBase16 += t
-	}
-	pos += 2
-	xid, _ := util.Base16ToBase10(xidBase16)
+	xid, _ := util.Base16ToBase10(ep.extractBody(0))
 	dataMap["xid"] = xid
 
 	return dataMap
@@ -235,120 +202,69 @@ func ParseTableMapEvent(eventBody []string) map[string]interface{} {
 	//fmt.Println(len(eventBody))
 	var dataMap map[string]interface{}
 	dataMap = make(map[string]interface{})
-	var pos int64
-	pos = 0
+	ep := eventParser{eventBody, 0}
 
 	// table_id
-	var tableIDBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+6]) {
-		tableIDBase16 += t
-	}
-	pos += 6
-	tableID, _ := util.Base16ToBase10(tableIDBase16)
+	tableID, _ := util.Base16ToBase10(ep.extractBody(6))
 	dataMap["table_id"] = tableID
 
 	// Reserved
-	var reservedBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+2]) {
-		reservedBase16 += t
-	}
-	pos += 2
-	reserved, _ := util.Base16ToBase10(reservedBase16)
+	reserved, _ := util.Base16ToBase10(ep.extractBody(2))
 	dataMap["reserved"] = reserved
 
 	// db len
-	var dbLenBase16 string
-	dbLenBase16 = eventBody[pos]
-	pos += 1
-	dbLen, _ := util.Base16ToBase10(dbLenBase16)
+	dbLen, _ := util.Base16ToBase10(ep.extractBody(1))
 	dataMap["db_len"] = dbLen
 
 	// db name
-	var dbName string
-	for _, t := range eventBody[pos : pos+dataMap["db_len"].(int64)] {
-		t, _ = util.Base16ToChar(t)
-		dbName += t
-	}
-	pos = pos + dataMap["db_len"].(int64) + 1
-	dataMap["db_name"] = dbName
+	dataMap["db_name"] = ep.extractBodyToChar(dbLen)
+	ep.pushCursor(1)
 
 	// table len
-	var tableLenBase16 string
-	tableLenBase16 = eventBody[pos]
-	pos += 1
-	tableLen, _ := util.Base16ToBase10(tableLenBase16)
+	tableLen, _ := util.Base16ToBase10(ep.extractBody(1))
 	dataMap["table_len"] = tableLen
 
 	// table name
-	var tableName string
-	for _, t := range eventBody[pos : pos+dataMap["table_len"].(int64)] {
-		t, _ = util.Base16ToChar(t)
-		tableName += t
-	}
-	pos = pos + dataMap["table_len"].(int64) + 1
-	dataMap["table_name"] = tableName
+	dataMap["table_name"] = ep.extractBodyToChar(tableLen)
+	ep.pushCursor(1)
 
 	// no of cols
-	var noOfColsBase16 string
-	noOfColsBase16 = eventBody[pos]
-	pos += 1
-	noOfCols, _ := util.Base16ToBase10(noOfColsBase16)
+	noOfCols, _ := util.Base16ToBase10(ep.extractBody(1))
 	dataMap["no_of_cols"] = noOfCols
 
 	// array of col types
 	var arrayOfColTypes []string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+dataMap["no_of_cols"].(int64)]) {
+	for _, t := range util.EndianConversion(ep.bodys[ep.cursor : ep.cursor+noOfCols]) {
 		typeCode, _ := util.Base16ToBase10(t)
 		arrayOfColTypes = append(arrayOfColTypes, colTypeCodeMap[typeCode])
 	}
-	pos = pos + dataMap["no_of_cols"].(int64)
 	dataMap["array_of_col_types"] = arrayOfColTypes
+	ep.pushCursor(noOfCols)
 
 	// metadata len
-	var metadataLenBase16 string
-	metadataLenBase16 = eventBody[pos]
-	pos += 1
-	metadataLen, _ := util.Base16ToBase10(metadataLenBase16)
+	metadataLen, _ := util.Base16ToBase10(ep.extractBody(1))
 	dataMap["metadata_len"] = metadataLen
 
 	// metadata block
-	var metadataBlock []string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+dataMap["metadata_len"].(int64)]) {
-		metadataBlock = append(metadataBlock, t)
-	}
-	pos += dataMap["metadata_len"].(int64)
-	dataMap["metadata_block"] = metadataBlock
+	dataMap["metadata_block"] = ep.extractBody(metadataLen)
 
 	// m_null_bits
-	var mNullBitsBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+((dataMap["no_of_cols"].(int64)+7)/8)]) {
-		mNullBitsBase16 += t
-	}
-	pos += (dataMap["no_of_cols"].(int64) + 7) / 8
-	mNullBitsBase, _ := util.Base16ToBase2(mNullBitsBase16)
+	mNullBitsBase, _ := util.Base16ToBase2(ep.extractBody((noOfCols + 7) / 8))
 	dataMap["m_null_bits"] = mNullBitsBase
 
 	// optional_meta_fields
-	if util.Int64ToInt(pos) < len(eventBody) {
+	if util.Int64ToInt(ep.cursor) < len(ep.bodys) {
 		var optionalMetaFieldsBase16 []interface{}
 		// type
-		var typeCode int64
-		typeCode, _ = util.Base16ToBase10(eventBody[pos])
-		pos += 1
+		typeCode, _ := util.Base16ToBase10(ep.extractBody(1))
 		optionalMetaFieldsBase16 = append(optionalMetaFieldsBase16, typeCode)
 
 		// length
-		var length int64
-		length, _ = util.Base16ToBase10(eventBody[pos])
-		pos += 1
+		length, _ := util.Base16ToBase10(ep.extractBody(1))
 		optionalMetaFieldsBase16 = append(optionalMetaFieldsBase16, length)
 
 		// value
-		var value string
-		for _, t := range util.ReverseSlice(eventBody[pos : pos+length]) {
-			value += t
-		}
-		valueBase10, _ := util.Base16ToBase10(value)
+		valueBase10, _ := util.Base16ToBase10(ep.extractBody(length))
 		optionalMetaFieldsBase16 = append(optionalMetaFieldsBase16, valueBase10)
 
 		dataMap["optional_meta_fields"] = optionalMetaFieldsBase16
@@ -367,59 +283,31 @@ func ParseMetadataBlock() {
 func ParseWriteEvent(eventBody []string) map[string]interface{} {
 	var dataMap map[string]interface{}
 	dataMap = make(map[string]interface{})
-	var pos int64
-	pos = 0
+	ep := eventParser{eventBody, 0}
 
 	// table_id
-	var tableIDBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+6]) {
-		tableIDBase16 += t
-	}
-	pos += 6
-	tableID, _ := util.Base16ToBase10(tableIDBase16)
+	tableID, _ := util.Base16ToBase10(ep.extractBody(6))
 	dataMap["table_id"] = tableID
 
 	// Reserved
-	var reservedBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+2]) {
-		reservedBase16 += t
-	}
-	pos += 2
-	reserved, _ := util.Base16ToBase10(reservedBase16)
+	reserved, _ := util.Base16ToBase10(ep.extractBody(2))
 	dataMap["reserved"] = reserved
 
 	// var_header_len
-	var varHeaderLenBase16 string
-	varHeaderLenBase16 = "0x"
-	for _, t := range eventBody[pos : pos+2] {
-		varHeaderLenBase16 += t
-	}
-	pos += 2
-	varHeaderLen, _ := util.Base16ToBase10(varHeaderLenBase16)
+	varHeaderLen, _ := util.Base16ToBase10("0x" + ep.extractBody(2))
 	dataMap["var_header_len"] = varHeaderLen
 
 	// columns_width
-	var colWidth int64
-	colWidth, _ = util.Base16ToBase10(eventBody[pos])
-	pos += 1
+	colWidth, _ := util.Base16ToBase10(ep.extractBody(1))
 	dataMap["columns_width"] = colWidth
 
 	// columns_after_image (don't consider binlog_row_image set to FULL)
-	var columnsAfterImageBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+((dataMap["columns_width"].(int64)+7)/8)]) {
-		columnsAfterImageBase16 += t
-	}
-	pos += (dataMap["columns_width"].(int64) + 7) / 8
-	columnsAfterImage, _ := util.Base16ToBase2(columnsAfterImageBase16)
+	columnsAfterImage, _ := util.Base16ToBase2(ep.extractBody((colWidth + 7) / 8))
 	dataMap["columns_after_image"] = columnsAfterImage
 
 	// row Bit-field
-	var rowBitFieldBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+((dataMap["columns_width"].(int64)+7)/8)]) {
-		rowBitFieldBase16 += t
-	}
-	pos += (dataMap["columns_width"].(int64) + 7) / 8
-	rowBitField, _ := util.Base16ToBase2(rowBitFieldBase16)
+	rowBitField, _ := util.Base16ToBase2(ep.extractBody((colWidth + 7) / 8))
+
 	var tmp string
 	zeroNo := util.Int64ToInt(dataMap["columns_width"].(int64)) - len(rowBitField)
 	for i := zeroNo; i > 0; i-- {
@@ -430,7 +318,7 @@ func ParseWriteEvent(eventBody []string) map[string]interface{} {
 
 	// row real data
 	var rowRealData []string
-	rowRealData = eventBody[pos:]
+	rowRealData = ep.bodys[ep.cursor:]
 	dataMap["row_real_data"] = rowRealData
 
 	return dataMap
@@ -441,70 +329,36 @@ func ParseWriteEvent(eventBody []string) map[string]interface{} {
 func ParseUpdateEvent(eventBody []string) map[string]interface{} {
 	var dataMap map[string]interface{}
 	dataMap = make(map[string]interface{})
-	var pos int64
-	pos = 0
+	ep := eventParser{eventBody, 0}
 
 	// table_id
-	var tableIDBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+6]) {
-		tableIDBase16 += t
-	}
-	pos += 6
-	tableID, _ := util.Base16ToBase10(tableIDBase16)
+	tableID, _ := util.Base16ToBase10(ep.extractBody(6))
 	dataMap["table_id"] = tableID
 
 	// Reserved
-	var reservedBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+2]) {
-		reservedBase16 += t
-	}
-	pos += 2
-	reserved, _ := util.Base16ToBase10(reservedBase16)
+	reserved, _ := util.Base16ToBase10(ep.extractBody(2))
 	dataMap["reserved"] = reserved
 
 	// var_header_len
-	var varHeaderLenBase16 string
-	varHeaderLenBase16 = "0x"
-	for _, t := range eventBody[pos : pos+2] {
-		varHeaderLenBase16 += t
-	}
-	pos += 2
-	varHeaderLen, _ := util.Base16ToBase10(varHeaderLenBase16)
+	varHeaderLen, _ := util.Base16ToBase10("0x" + ep.extractBody(2))
 	dataMap["var_header_len"] = varHeaderLen
 
 	// columns_width
-	var colWidth int64
-	colWidth, _ = util.Base16ToBase10(eventBody[pos])
-	pos += 1
+	colWidth, _ := util.Base16ToBase10(ep.extractBody(1))
 	dataMap["columns_width"] = colWidth
 
 	// columns_before_image (don't consider binlog_row_image set to FULL)
-	var columnsBeforeImageBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+((dataMap["columns_width"].(int64)+7)/8)]) {
-		columnsBeforeImageBase16 += t
-	}
-	pos += (dataMap["columns_width"].(int64) + 7) / 8
-	columnsBeforeImage, _ := util.Base16ToBase2(columnsBeforeImageBase16)
+	columnsBeforeImage, _ := util.Base16ToBase2(ep.extractBody((colWidth + 7) / 8))
 	dataMap["columns_before_image"] = columnsBeforeImage
 
 	// columns_after_image (don't consider binlog_row_image set to FULL)
-	var columnsAfterImageBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+((dataMap["columns_width"].(int64)+7)/8)]) {
-		columnsAfterImageBase16 += t
-	}
-	pos += (dataMap["columns_width"].(int64) + 7) / 8
-	columnsAfterImage, _ := util.Base16ToBase2(columnsAfterImageBase16)
+	columnsAfterImage, _ := util.Base16ToBase2(ep.extractBody((colWidth + 7) / 8))
 	dataMap["columns_after_image"] = columnsAfterImage
 
 	// row Bit-field
-	var rowBitFieldBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+((dataMap["columns_width"].(int64)+7)/8)]) {
-		rowBitFieldBase16 += t
-	}
-	pos += (dataMap["columns_width"].(int64) + 7) / 8
-	rowBitField, _ := util.Base16ToBase2(rowBitFieldBase16)
+	rowBitField, _ := util.Base16ToBase2(ep.extractBody((colWidth + 7) / 8))
 	var tmp string
-	zeroNo := util.Int64ToInt(dataMap["columns_width"].(int64)) - len(rowBitField)
+	zeroNo := util.Int64ToInt(colWidth) - len(rowBitField)
 	for i := zeroNo; i > 0; i-- {
 		tmp += "0"
 	}
@@ -513,7 +367,7 @@ func ParseUpdateEvent(eventBody []string) map[string]interface{} {
 
 	// row real data
 	var rowRealData []string
-	rowRealData = eventBody[pos:]
+	rowRealData = ep.bodys[ep.cursor:]
 	dataMap["row_real_data"] = rowRealData
 
 	return dataMap
@@ -523,61 +377,32 @@ func ParseUpdateEvent(eventBody []string) map[string]interface{} {
 func ParseDeleteEvent(eventBody []string) map[string]interface{} {
 	var dataMap map[string]interface{}
 	dataMap = make(map[string]interface{})
-	var pos int64
-	pos = 0
+	ep := eventParser{eventBody, 0}
 
 	// table_id
-	var tableIDBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+6]) {
-		tableIDBase16 += t
-	}
-	pos += 6
-	tableID, _ := util.Base16ToBase10(tableIDBase16)
+	tableID, _ := util.Base16ToBase10(ep.extractBody(6))
 	dataMap["table_id"] = tableID
 
 	// Reserved
-	var reservedBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+2]) {
-		reservedBase16 += t
-	}
-	pos += 2
-	reserved, _ := util.Base16ToBase10(reservedBase16)
+	reserved, _ := util.Base16ToBase10(ep.extractBody(2))
 	dataMap["reserved"] = reserved
 
 	// var_header_len
-	var varHeaderLenBase16 string
-	varHeaderLenBase16 = "0x"
-	for _, t := range eventBody[pos : pos+2] {
-		varHeaderLenBase16 += t
-	}
-	pos += 2
-	varHeaderLen, _ := util.Base16ToBase10(varHeaderLenBase16)
+	varHeaderLen, _ := util.Base16ToBase10("0x" + ep.extractBody(2))
 	dataMap["var_header_len"] = varHeaderLen
 
 	// columns_width
-	var colWidth int64
-	colWidth, _ = util.Base16ToBase10(eventBody[pos])
-	pos += 1
+	colWidth, _ := util.Base16ToBase10(ep.extractBody(0))
 	dataMap["columns_width"] = colWidth
 
 	// columns_before_image (don't consider binlog_row_image set to FULL)
-	var columnsBeforeImageBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+((dataMap["columns_width"].(int64)+7)/8)]) {
-		columnsBeforeImageBase16 += t
-	}
-	pos += (dataMap["columns_width"].(int64) + 7) / 8
-	columnsBeforeImage, _ := util.Base16ToBase2(columnsBeforeImageBase16)
+	columnsBeforeImage, _ := util.Base16ToBase2(ep.extractBody((colWidth + 7) / 8))
 	dataMap["columns_before_image"] = columnsBeforeImage
 
 	// row Bit-field
-	var rowBitFieldBase16 string
-	for _, t := range util.ReverseSlice(eventBody[pos : pos+((dataMap["columns_width"].(int64)+7)/8)]) {
-		rowBitFieldBase16 += t
-	}
-	pos += (dataMap["columns_width"].(int64) + 7) / 8
-	rowBitField, _ := util.Base16ToBase2(rowBitFieldBase16)
+	rowBitField, _ := util.Base16ToBase2(ep.extractBody((colWidth + 7) / 8))
 	var tmp string
-	zeroNo := util.Int64ToInt(dataMap["columns_width"].(int64)) - len(rowBitField)
+	zeroNo := util.Int64ToInt(colWidth) - len(rowBitField)
 	for i := zeroNo; i > 0; i-- {
 		tmp += "0"
 	}
@@ -586,7 +411,7 @@ func ParseDeleteEvent(eventBody []string) map[string]interface{} {
 
 	// row real data
 	var rowRealData []string
-	rowRealData = eventBody[pos:]
+	rowRealData = ep.bodys[ep.cursor:]
 	dataMap["row_real_data"] = rowRealData
 
 	return dataMap
