@@ -273,8 +273,8 @@ func ParseTableMapEvent(eventBody []string) map[string]interface{} {
 	return dataMap
 }
 
-// ParseMetadataBlock
-// TODO: parsing the meatadata block in table_map_event
+// ParseMetadataBlock parsing the meatadata block in table_map_event
+// TODO:
 func ParseMetadataBlock() {
 
 }
@@ -417,8 +417,8 @@ func ParseDeleteEvent(eventBody []string) map[string]interface{} {
 	return dataMap
 }
 
-// ParseRowRealData
-// TODO: parsing the row real data in row_event
+// ParseRowRealData parsing the row real data in row_event
+// TODO:
 func ParseRowRealData() {
 
 }
