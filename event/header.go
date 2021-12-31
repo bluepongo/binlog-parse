@@ -19,7 +19,7 @@ func ParseHeader(content []string, pos int) map[string]interface{} {
 
 	// timestamp
 	var timeBase16 string
-	for _, t := range util.ReverseSlice(header[:4]) {
+	for _, t := range util.EndianConversion(header[:4]) {
 		timeBase16 += t
 	}
 	timeUnix, _ := util.Base16ToBase10(timeBase16)
@@ -36,7 +36,7 @@ func ParseHeader(content []string, pos int) map[string]interface{} {
 
 	// server id
 	var serverIDBase16 string
-	for _, t := range util.ReverseSlice(header[5:9]) {
+	for _, t := range util.EndianConversion(header[5:9]) {
 		serverIDBase16 += t
 	}
 	serverID, _ := util.Base16ToBase10(serverIDBase16)
@@ -45,7 +45,7 @@ func ParseHeader(content []string, pos int) map[string]interface{} {
 
 	// event length
 	var eventLenBase16 string
-	for _, t := range util.ReverseSlice(header[9:13]) {
+	for _, t := range util.EndianConversion(header[9:13]) {
 		eventLenBase16 += t
 	}
 	eventLen, _ := util.Base16ToBase10(eventLenBase16)
@@ -54,7 +54,7 @@ func ParseHeader(content []string, pos int) map[string]interface{} {
 
 	// end log position
 	var endLogPositionBase16 string
-	for _, t := range util.ReverseSlice(header[13:17]) {
+	for _, t := range util.EndianConversion(header[13:17]) {
 		endLogPositionBase16 += t
 	}
 	endLogPosition, _ := util.Base16ToBase10(endLogPositionBase16)
@@ -63,7 +63,7 @@ func ParseHeader(content []string, pos int) map[string]interface{} {
 
 	// flags
 	var flagsBase16 string
-	for _, t := range util.ReverseSlice(header[17:19]) {
+	for _, t := range util.EndianConversion(header[17:19]) {
 		flagsBase16 += t
 	}
 	flags, _ := util.Base16ToBase10(flagsBase16)
