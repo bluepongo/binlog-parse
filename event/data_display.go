@@ -1,6 +1,9 @@
 package event
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/bluepongo/binlog-parse/util"
+)
 
 // DisplayData determine the Event type and choose the display function
 func DisplayData(headerMap map[string]interface{}, dataMap map[string]interface{}) {
@@ -22,6 +25,10 @@ func DisplayData(headerMap map[string]interface{}, dataMap map[string]interface{
 		DisplayDeleteEvent(dataMap)
 	case "GTID_EVENT":
 		DisplayGtidEvent(dataMap)
+	case "ANONYMOUS_GTID_LOG_EVENT":
+		DisplayAnonymousGtidEvent(dataMap)
+	case "PREVIOUS_GTID_LOG_EVENT":
+		DisplayPreviousGtidsEvent(dataMap)
 	}
 }
 
@@ -113,4 +120,20 @@ func DisplayAnonymousGtidEvent(dataMap map[string]interface{}) {
 	fmt.Printf("server_uuid: %v:%v\t", dataMap["server_uuid"], dataMap["gno"])
 	fmt.Printf("last committed: %v\t", dataMap["last_commit"])
 	fmt.Printf("seq number: %v\n", dataMap["seq_number"])
+}
+
+// DisplayPreviousGtidsEvent display the previous gtids event info
+func DisplayPreviousGtidsEvent(dataMap map[string]interface{}) {
+	fmt.Printf("[data body]\n")
+	if dataMap["num_of_sids"].(int64) == 0 {
+		fmt.Println("empty")
+	}
+	for m := 0; m < util.Int64ToInt(dataMap["num_of_sids"].(int64)); m++ {
+		for n := 0; n < util.Int64ToInt(dataMap["sids"].([]map[string]interface{})[m]["n_intervals"].(int64)); n++ {
+			interStart := dataMap["sids"].([]map[string]interface{})[m]["inter_start_next"].([][2]int64)[n][0]
+			interEnd := dataMap["sids"].([]map[string]interface{})[m]["inter_start_next"].([][2]int64)[n][1] - 1
+			fmt.Printf("%v: %v-%v\n",
+				dataMap["sids"].([]map[string]interface{})[m]["server_uuid"], interStart, interEnd)
+		}
+	}
 }

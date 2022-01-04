@@ -82,7 +82,7 @@ var eventTypeMap = map[int64]string{
 	32: "DELETE_EVENT",
 	33: "GTID_EVENT",
 	34: "ANONYMOUS_GTID_LOG_EVENT",
-	35: "PREVIOUS_GTID_EVENT",
+	35: "PREVIOUS_GTID_LOG_EVENT",
 }
 
 // GetEventType mark the event type according to type code

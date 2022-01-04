@@ -1,7 +1,6 @@
 package event
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
@@ -66,9 +65,9 @@ func ParseData(content []string, pos int, headerMap map[string]interface{}) map[
 	case "GTID_EVENT":
 		return ParseGtidEvent(eventBody)
 	case "ANONYMOUS_GTID_LOG_EVENT":
-		ParseAnonymousGtidLogEvent(eventBody)
-	case "PREVIOUS_GTID_EVENT":
-		ParsePreviousGtidEvent(eventBody)
+		return ParseAnonymousGtidLogEvent(eventBody)
+	case "PREVIOUS_GTID_LOG_EVENT":
+		return ParsePreviousGtidEvent(eventBody)
 	default:
 		return nil
 	}
@@ -513,6 +512,63 @@ func ParseAnonymousGtidLogEvent(eventBody []string) map[string]interface{} {
 }
 
 // ParsePreviousGtidEvent parsing the previous_gtid_event
-func ParsePreviousGtidEvent(eventBody []string) {
-	fmt.Println(eventBody)
+func ParsePreviousGtidEvent(eventBody []string) map[string]interface{} {
+	// fmt.Println(eventBody)
+	var dataMap map[string]interface{}
+	dataMap = make(map[string]interface{})
+
+	//eventBody = []string{"02", "00", "00", "00", "00", "00", "00", "00",
+	//	"24", "98", "24", "98", "24", "98", "24", "98", "24", "98", "24", "98", "24", "98", "24", "98",
+	//	"02", "00", "00", "00", "00", "00", "00", "00",
+	//	"02", "00", "00", "00", "00", "00", "00", "00",
+	//	"08", "00", "00", "00", "00", "00", "00", "00",
+	//	"09", "00", "00", "00", "00", "00", "00", "00",
+	//	"10", "00", "00", "00", "00", "00", "00", "00",
+	//
+	//	"66", "77", "88", "98", "24", "98", "24", "98", "24", "98", "24", "98", "24", "98", "24", "98",
+	//	"02", "00", "00", "00", "00", "00", "00", "00",
+	//	"02", "00", "00", "00", "00", "00", "00", "00",
+	//	"08", "00", "00", "00", "00", "00", "00", "00",
+	//	"09", "00", "00", "00", "00", "00", "00", "00",
+	//	"10", "00", "00", "00", "00", "00", "00", "00",
+	//}
+	ep := eventParser{eventBody, 0}
+
+	// number of sids
+	numOfSids, _ := util.Base16ToBase10(ep.extractBodyAndReverse(8))
+	dataMap["num_of_sids"] = numOfSids
+	var sids []map[string]interface{}
+	for num := numOfSids; num > 0; num-- {
+		var sid map[string]interface{}
+		sid = make(map[string]interface{})
+
+		// server_uuid
+		var serverUUID string
+		for i, t := range ep.bodys[ep.cursor : ep.cursor+16] {
+			serverUUID += t
+			if i+1 == 4 || i+1 == 6 || i+1 == 8 || i+1 == 10 || i+1 == 12 {
+				serverUUID += "-"
+			}
+		}
+		ep.pushCursor(16)
+		sid["server_uuid"] = serverUUID
+
+		// n_intervals
+		nIntervals, _ := util.Base16ToBase10(ep.extractBodyAndReverse(8))
+		sid["n_intervals"] = nIntervals
+
+		var inter [][2]int64
+		for i := 0; i < util.Int64ToInt(nIntervals); i++ {
+			var tmp [2]int64
+			// inter_start & inter_next
+			tmp[0], _ = util.Base16ToBase10(ep.extractBodyAndReverse(8))
+			tmp[1], _ = util.Base16ToBase10(ep.extractBodyAndReverse(8))
+			inter = append(inter, tmp)
+			sid["inter_start_next"] = inter
+		}
+
+		sids = append(sids, sid)
+	}
+	dataMap["sids"] = sids
+	return dataMap
 }
