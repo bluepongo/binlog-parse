@@ -33,5 +33,5 @@ func ParseBinlog(filePath string) {
 		// update the postion
 		pos = headerMap["end_log_p"].(int64)
 	}
-
+	fmt.Println("====================================finish====================================")
 }

@@ -1,6 +1,7 @@
 package event
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -38,7 +39,7 @@ var colTypeCodeMap = map[int64]string{
 	249: "TINY_BLOB",
 	250: "MEDIUM_BLOB",
 	251: "LONG_BLOB",
-	252: "BLOG",
+	252: "BLOB",
 	253: "VAR_STRING",
 	254: "STRING",
 	255: "GEOMETRY",
@@ -258,6 +259,11 @@ func ParseTableMapEvent(eventBody []string) map[string]interface{} {
 
 	// metadata block
 	dataMap["metadata_block"] = ep.extractBodyAndReverse(metadataLen)
+	var metaDataBlock []string
+	for i := 0; i < 2*util.Int64ToInt(metadataLen); i += 2 {
+		metaDataBlock = append(metaDataBlock, dataMap["metadata_block"].(string)[i:i+2])
+	}
+	ParseMetadataBlock(metaDataBlock, util.Int64ToInt(noOfCols), arrayOfColTypes)
 
 	// m_null_bits
 	mNullBitsBase, _ := util.Base16ToBase2(ep.extractBodyAndReverse((noOfCols + 7) / 8))
@@ -286,7 +292,48 @@ func ParseTableMapEvent(eventBody []string) map[string]interface{} {
 
 // ParseMetadataBlock parsing the meatadata block in table_map_event
 // TODO:
-func ParseMetadataBlock() {
+func ParseMetadataBlock(metaDataBlock []string, noOfCols int, arrayOfColTypes []string) {
+	ep := eventParser{metaDataBlock, 0}
+	for i := 0; i < noOfCols; i++ {
+		fmt.Printf("TYPE[%d]：%v", i+1, arrayOfColTypes[i])
+		switch arrayOfColTypes[i] {
+		case "FLOAT":
+			length, _ := util.Base16ToBase10(ep.extractBody(1))
+			fmt.Printf("(%v)\n", length)
+		case "DOUBLE":
+			length, _ := util.Base16ToBase10(ep.extractBody(1))
+			fmt.Printf("(%v)\n", length)
+		case "VARCHAR":
+			length, _ := util.Base16ToBase10(ep.extractBody(2))
+			fmt.Printf("(%v)\n", length/4)
+		case "BIT":
+			bits, _ := util.Base16ToBase10(ep.extractBody(1))
+			fmt.Printf("(%v/", bits)
+
+			bytes, _ := util.Base16ToBase10(ep.extractBody(1))
+			fmt.Printf("%v）", bytes)
+		case "NEWDECIMAL":
+			precision, _ := util.Base16ToBase10(ep.extractBody(1))
+			fmt.Printf("(precision: %v, ", precision)
+
+			decimals, _ := util.Base16ToBase10(ep.extractBody(1))
+			fmt.Printf("decimals: %v）", decimals)
+		case "BLOB":
+			length, _ := util.Base16ToBase10(ep.extractBody(1))
+			fmt.Printf("(%v)\n", length)
+		case "VAR_STRING":
+			ep.pushCursor(1)
+			length, _ := util.Base16ToBase10(ep.extractBody(1))
+			fmt.Printf("(%v)\n", length/4)
+		case "GEOMETRY":
+			length, _ := util.Base16ToBase10(ep.extractBody(1))
+			fmt.Printf("(%v)\n", length)
+		case "TYPED_ARRAY":
+			// TODO:
+		default:
+			fmt.Println()
+		}
+	}
 
 }
 
@@ -403,7 +450,7 @@ func ParseDeleteEvent(eventBody []string) map[string]interface{} {
 	dataMap["var_header_len"] = varHeaderLen
 
 	// columns_width
-	colWidth, _ := util.Base16ToBase10(ep.extractBodyAndReverse(0))
+	colWidth, _ := util.Base16ToBase10(ep.extractBodyAndReverse(1))
 	dataMap["columns_width"] = colWidth
 
 	// columns_before_image (don't consider binlog_row_image set to FULL)

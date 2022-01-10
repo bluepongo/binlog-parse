@@ -65,6 +65,7 @@ func DisplayXIDEvent(dataMap map[string]interface{}) {
 // DisplayTableMapEvent display the table_map_event info
 func DisplayTableMapEvent(dataMap map[string]interface{}) {
 	fmt.Printf("[data body]\n")
+	fmt.Printf("table id: %v\t", dataMap["table_id"])
 	fmt.Printf("db name: %v\t", dataMap["db_name"])
 	fmt.Printf("table name: %v\t", dataMap["table_name"])
 
